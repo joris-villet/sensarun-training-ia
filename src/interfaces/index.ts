@@ -17,5 +17,4 @@ export interface IUser {
   email: string;
   picture?: string;
   first_connection?: boolean;
-  niveau_language?: string;
 }

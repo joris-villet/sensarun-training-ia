@@ -15,44 +15,40 @@ export const POST: APIRoute = async (context: any) => {
 
   try {
     
-  // const groqApiKey = import.meta.env.API_KEY_GROQ_CLOUD || context.locals?.runtime?.env.API_KEY_GROQ_CLOUD;
+  const groqApiKey = import.meta.env.API_KEY_GROQ_CLOUD || context.locals?.runtime?.env.API_KEY_GROQ_CLOUD;
 
-  //   if (!groqApiKey) {
-  //     return new Response(JSON.stringify({ error: "Missing GROQ_API_KEY" }), { status: 500 });
-  //   }
+    if (!groqApiKey) {
+      return new Response(JSON.stringify({ error: "Missing GROQ_API_KEY" }), { status: 500 });
+    }
   
-  //   const groq = new Groq({ apiKey: groqApiKey });
-  //   const messages: IMessage[] = await context.request.json();
+    const groq = new Groq({ apiKey: groqApiKey });
+    const messages: IMessage[] = await context.request.json();
 
-  //   const system = {
-  //     role: "system" as const,
-  //     content: promptTemplate.trim(),
-  //   };
+    const system = {
+      role: "system" as const,
+      content: promptTemplate.trim(),
+    };
 
-  //   const chatHistory = messages.map((m: IMessage) => ({
-  //     role: m.role as "user" | "assistant" | "system",
-  //     content: m.content,
-  //   }));
+    const chatHistory = messages.map((m: IMessage) => ({
+      role: m.role as "user" | "assistant" | "system",
+      content: m.content,
+    }));
 
-  //   chatHistory.unshift(system);
+    chatHistory.unshift(system);
 
-  //   const chatCompletion = await groq.chat.completions.create({
-  //     messages: chatHistory,
-  //     model: "llama3-70b-8192",
-  //     temperature: 0.2,
-  //     max_completion_tokens: 150,
-  //     top_p: 0.95,
-  //     stream: false,
-  //   });
+    const chatCompletion = await groq.chat.completions.create({
+      messages: chatHistory,
+      model: "llama3-70b-8192",
+      temperature: 0.2,
+      max_completion_tokens: 150,
+      top_p: 0.95,
+      stream: false,
+    });
 
-  //   const output = chatCompletion.choices[0].message;
-
-  //   return new Response(JSON.stringify({
-  //     message: output.content,
-  //   }));
+    const output = chatCompletion.choices[0].message;
 
     return new Response(JSON.stringify({
-      message: 'ok',
+      message: output.content,
     }));
 
   } 

@@ -75,6 +75,7 @@ export const GET: APIRoute = async (context: any) => {
 
     const token = await tokenRes.json();
     console.log('Token received:', token.access_token ? 'YES' : 'NO');
+
     if (!token.access_token) {
       return new Response(JSON.stringify('Token error'), {
         status: 401
@@ -99,16 +100,21 @@ export const GET: APIRoute = async (context: any) => {
     const [existingUser] = await db.select().from(users).where(eq(users.email, profile.email)).limit(1);
     
     let user;
+
     if (!existingUser) {
-      //[user] = await db.insert(users).values({ email, name }).returning();
+    
       [user] = await db.insert(users).values({
         name: profile.name,
         google_id: profile.id,
         email: profile.email,
         picture: profile.picture,
       }).returning()
+
     } else {
       user = existingUser;
+      // await db.insert(users).values({
+      //   first_connection: false,
+      // })
     }
 
      // Créer le cookie de session
@@ -118,7 +124,6 @@ export const GET: APIRoute = async (context: any) => {
         name: user.name,
         google_id: user.google_id,
         first_connection: user.first_connection,
-        niveau_language: user.niveau_language,
         picture: user.picture,
     };
 

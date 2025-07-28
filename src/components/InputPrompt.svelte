@@ -66,7 +66,7 @@
     <input
       bind:value={input}
       id="prompt"
-      class="mx-2 flex-1 rounded-lg px-2 py-4 text-base text-neutral-600 bg-white/80 border-2 border-lime-400 shadow-2xs shadow-neutral-300 focus:bg-lime-100 focus:outline-none"
+      class="mx-2 flex-1 rounded-lg px-2 py-4 text-base text-neutral-600 bg-white/80 border-2 border-lime-400 shadow-2xs shadow-neutral-300 focus:border-4 focus:outline-none"
       placeholder="Enter your prompt"
       autocomplete="off"
     />
