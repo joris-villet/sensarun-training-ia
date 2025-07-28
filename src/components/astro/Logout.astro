@@ -1,0 +1,9 @@
+---
+const baseUrl = Astro.url.origin;
+console.log('base url => ', baseUrl)
+---
+
+<button>
+  <!-- <a href="http://localhost:4321/api/auth/logout">Déconnexion</a> -->
+  <a class="py-1 px-4 border rounded-sm" href={`${baseUrl}/api/auth/logout`}>Déconnexion</a>
+</button>
