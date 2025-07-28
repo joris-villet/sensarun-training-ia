@@ -25,6 +25,8 @@ interface Locals {
 
 // Cast Astro.locals to the defined type
 const { user } = Astro.locals as Locals;
+
+export const prerender = false;
 ---
 
 <Layout>
