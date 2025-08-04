@@ -1,17 +1,18 @@
 import type { APIRoute } from 'astro';
 import { users } from '../../../../db/schema';
 import { eq } from 'drizzle-orm';
-import { db } from '../../../../lib/db';
+// import { drizzle } from 'drizzle-orm/neon-http';
+// import { neon } from '@neondatabase/serverless';
+import { createDB } from '../../../../lib/db';
 
 
 export const GET: APIRoute = async (context: any) => {
   // console.log('=== OAUTH CALLBACK START ===');
   // console.log('URL:', context.url.toString());
   // console.log('Origin:', context.url.origin);
+  try {
 
-  const dbUrl =
-    context.locals?.runtime?.env?.DATABASE_URL ||
-    import.meta.env.DATABASE_URL; // fallback local
+  const dbUrl = context.locals?.runtime?.env?.DATABASE_URL || import.meta.env.DATABASE_URL;
 
   const googleClientId =
     context.locals?.runtime?.env?.GOOGLE_CLIENT_ID ||
@@ -27,6 +28,13 @@ export const GET: APIRoute = async (context: any) => {
     })
   }
 
+  const db = createDB(dbUrl);
+
+  // Créer la connexion DB ici
+  // const sql = neon(dbUrl);
+  // const db = drizzle(sql, { schema: { users } });
+
+
   const code = context?.url?.searchParams.get('code');
   console.log('Code received:', code ? 'YES' : 'NO');
 
@@ -37,7 +45,6 @@ export const GET: APIRoute = async (context: any) => {
     })
   }
 
-  try {
     // console.log('Environment check:');
     // console.log('GOOGLE_CLIENT_ID:', context.locals.runtime.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET');
     // console.log('GOOGLE_CLIENT_SECRET:', context.locals.runtime.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT SET');
