@@ -40,8 +40,8 @@
   let hasInitialized = false;
 
   $effect(() => {
-    console.log('je passe dans container messages')
-    console.log(storeUser.first_connection, storeMessage.messages.length)
+    // console.log('je passe dans container messages')
+    // console.log(storeUser.first_connection, storeMessage.messages.length)
     if (containerRef && !hasInitialized) {
       containerRef.focus();
       hasInitialized = true;

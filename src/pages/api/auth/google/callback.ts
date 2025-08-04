@@ -112,14 +112,15 @@ export const GET: APIRoute = async (context: any) => {
         first_connection: true, // explicitly set to true for new users
       }).returning()
    
-    } else {
-      // Update the existing user's first_connection to false
+    } 
+    // else {
+
    
-      await db.update(users)
-        .set({ first_connection: false })
-        .where(eq(users.email, profile.email))
-        .returning();
-    }
+    //   await db.update(users)
+    //     .set({ first_connection: false })
+    //     .where(eq(users.email, profile.email))
+    //     .returning();
+    // }
 
     // Créer le cookie de session
     const sessionData = {
