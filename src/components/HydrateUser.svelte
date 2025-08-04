@@ -3,10 +3,12 @@
 
   const { 
     picture = "",
+    firstConnexion = false,
     } = $props();
 
     $effect(() => {
       storeUser.picture = picture;
+      storeUser.first_connection = firstConnexion;
     })
 </script>
 

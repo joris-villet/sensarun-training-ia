@@ -12,7 +12,6 @@ export const users = pgTable('users', {
 });
 
 
-// New table: profileQuestions
 export const profileQuestions = pgTable('profile_questions', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   question: text('question').notNull(),
@@ -22,15 +21,11 @@ export const profileQuestions = pgTable('profile_questions', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// New table: profileAnswers
+
 export const profileAnswers = pgTable('profile_answers', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  userId: integer('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  questionId: integer('question_id')
-    .notNull()
-    .references(() => profileQuestions.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  questionId: integer('question_id').notNull().references(() => profileQuestions.id, { onDelete: 'cascade' }),
   value: text('value').notNull(), // could also use `json` if answers vary
   createdAt: timestamp('created_at').defaultNow(),
 });

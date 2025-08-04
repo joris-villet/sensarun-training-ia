@@ -5,5 +5,4 @@ export const storeUser = $state<IUser>({
   email: "",
   picture: "",
   first_connection: false,
-  niveau_language: "",
 })

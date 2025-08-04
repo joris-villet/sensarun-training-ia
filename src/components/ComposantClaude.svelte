@@ -1,11 +1,11 @@
-// Exemple d'utilisation dans un composant Svelte
+<!-- 
 import type { AthleteProfile, CoachRequest, CoachResponse } from '../interfaces/coach';
 
 export class CoachService {
   private athleteProfile: AthleteProfile = {};
   private conversationHistory: Array<{ role: string; content: string }> = [];
 
-  // Méthode principale pour envoyer un message au coach
+  
   async sendMessage(userMessage: string, intentType?: string): Promise<CoachResponse> {
     // Ajouter le message à l'historique
     this.conversationHistory.push({
@@ -38,7 +38,7 @@ export class CoachService {
         timestamp: new Date().toISOString()
       });
 
-      // Extraire automatiquement les données utilisateur de la conversation
+
       this.updateAthleteProfile(userMessage, data);
 
       return data;
@@ -49,19 +49,19 @@ export class CoachService {
     }
   }
 
-  // Mise à jour automatique du profil athlète
+
   private updateAthleteProfile(userMessage: string, coachResponse: CoachResponse) {
     const message = userMessage.toLowerCase();
 
-    // Extraction automatique de données courantes
+
     
-    // Âge
+  
     const ageMatch = message.match(/(\d+)\s*ans?/);
     if (ageMatch) {
       this.athleteProfile.age = parseInt(ageMatch[1]);
     }
 
-    // Expérience
+
     if (message.includes('débutant') || message.includes('commence')) {
       this.athleteProfile.experience = 'debutant';
     } else if (message.includes('quelques années') || message.includes('intermédiaire')) {
@@ -70,7 +70,7 @@ export class CoachService {
       this.athleteProfile.experience = 'avance';
     }
 
-    // Objectifs
+
     if (message.includes('marathon')) {
       this.athleteProfile.objectifPrincipal = 'marathon';
     } else if (message.includes('10k') || message.includes('10 km')) {
@@ -81,7 +81,7 @@ export class CoachService {
       this.athleteProfile.objectifPrincipal = 'semi';
     }
 
-    // Kilométrage
+
     const kmMatch = message.match(/(\d+)\s*km.*semaine/);
     if (kmMatch) {
       this.athleteProfile.kilometrageHebdo = parseInt(kmMatch[1]);
@@ -96,7 +96,7 @@ export class CoachService {
     console.log('Profil mis à jour:', this.athleteProfile);
   }
 
-  // Détection de l'urgence du message
+
   private detectUrgency(message: string): 'low' | 'medium' | 'high' {
     const urgentWords = ['urgent', 'douleur', 'mal', 'blessé', 'course demain', 'rapidement'];
     const mediumWords = ['bientôt', 'prochaine course', 'dans quelques jours'];
@@ -114,7 +114,7 @@ export class CoachService {
     return 'low';
   }
 
-  // Méthodes utilitaires
+
   getAthleteProfile(): AthleteProfile {
     return { ...this.athleteProfile };
   }
@@ -171,7 +171,7 @@ export class CoachService {
     loading = false;
   }
 
-  // Messages prédéfinis pour démarrer
+  
   const quickStarts = [
     { text: "Je veux commencer la course à pied", intent: "collecte_donnees" },
     { text: "J'ai besoin d'un programme pour un 10K", intent: "programme_entrainement" },
@@ -186,7 +186,7 @@ export class CoachService {
 </script>
 
 <div class="coach-interface">
-  <!-- Quick starts pour nouveaux utilisateurs -->
+
   {#if conversation.length === 0}
     <div class="quick-starts">
       <h3>Comment puis-je t'aider ?</h3>
@@ -198,7 +198,7 @@ export class CoachService {
     </div>
   {/if}
 
-  <!-- Conversation -->
+
   <div class="conversation">
     {#each conversation as msg}
       <div class="message {msg.role}">
@@ -216,7 +216,7 @@ export class CoachService {
     {/each}
   </div>
 
-  <!-- Input -->
+
   <div class="input-area">
     <input 
       bind:value={userInput} 
@@ -228,4 +228,4 @@ export class CoachService {
     </button>
   </div>
 </div>
-*/
+*/ -->

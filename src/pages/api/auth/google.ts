@@ -4,17 +4,12 @@ import type { APIRoute } from 'astro';
 export const GET: APIRoute = async (context: any) => {
 
   try {
-
     const runtime = context.locals?.runtime;
     
-
     const clientId =
     runtime?.env?.GOOGLE_CLIENT_ID ||
     import.meta.env.GOOGLE_CLIENT_ID; 
 
-    // const runtime = context.locals.runtime;
-    // const clientId = runtime.env.GOOGLE_CLIENT_ID;
-    
     if (!clientId) {
       return new Response(JSON.stringify('Google Client ID not configured'));
     }

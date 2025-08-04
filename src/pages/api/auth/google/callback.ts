@@ -1,10 +1,8 @@
 import type { APIRoute } from 'astro';
 import { users } from '../../../../db/schema';
-import * as schema from '../../../../db/schema';
 import { eq } from 'drizzle-orm';
+import { db } from '../../../../lib/db';
 
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
 
 export const GET: APIRoute = async (context: any) => {
   // console.log('=== OAUTH CALLBACK START ===');
@@ -15,13 +13,13 @@ export const GET: APIRoute = async (context: any) => {
     context.locals?.runtime?.env?.DATABASE_URL ||
     import.meta.env.DATABASE_URL; // fallback local
 
-    const googleClientId = 
-      context.locals?.runtime?.env?.GOOGLE_CLIENT_ID ||
-      import.meta.env.GOOGLE_CLIENT_ID; 
+  const googleClientId =
+    context.locals?.runtime?.env?.GOOGLE_CLIENT_ID ||
+    import.meta.env.GOOGLE_CLIENT_ID;
 
-      const googleClientSecret = 
-      context.locals?.runtime?.env?.GOOGLE_CLIENT_SECRET ||
-      import.meta.env.GOOGLE_CLIENT_SECRET; 
+  const googleClientSecret =
+    context.locals?.runtime?.env?.GOOGLE_CLIENT_SECRET ||
+    import.meta.env.GOOGLE_CLIENT_SECRET;
 
   if (!dbUrl) {
     return new Response(JSON.stringify('DATABASE_URL not configured'), {
@@ -29,12 +27,9 @@ export const GET: APIRoute = async (context: any) => {
     })
   }
 
-  const sql = neon(dbUrl);
-  const db = drizzle(sql, { schema });
-  
   const code = context?.url?.searchParams.get('code');
   console.log('Code received:', code ? 'YES' : 'NO');
-  
+
   if (!code) {
     console.log('ERROR: Missing code');
     return new Response(JSON.stringify('Missing code'), {
@@ -63,7 +58,7 @@ export const GET: APIRoute = async (context: any) => {
     console.log("token response => ", tokenRes)
 
     console.log('Token response status:', tokenRes.status);
-    
+
     if (!tokenRes.ok) {
       const errorText = await tokenRes.text();
       console.log('Token error response:', errorText);
@@ -88,7 +83,7 @@ export const GET: APIRoute = async (context: any) => {
     });
 
     const profile = await profileRes.json();
-    
+
     console.log("profile => ", profile);
 
     if (profile.email !== "jorisvillet@gmail.com") {
@@ -97,34 +92,36 @@ export const GET: APIRoute = async (context: any) => {
       })
     }
 
-    const [existingUser] = await db.select().from(users).where(eq(users.email, profile.email)).limit(1);
-    
+    let [existingUser] = await db.select().from(users).where(eq(users.email, profile.email)).limit(1);
+
     let user;
 
     if (!existingUser) {
-    
       [user] = await db.insert(users).values({
         name: profile.name,
         google_id: profile.id,
         email: profile.email,
         picture: profile.picture,
+        first_connection: true, // explicitly set to true for new users
       }).returning()
-
+   
     } else {
-      user = existingUser;
-      // await db.insert(users).values({
-      //   first_connection: false,
-      // })
+      // Update the existing user's first_connection to false
+   
+      await db.update(users)
+        .set({ first_connection: false })
+        .where(eq(users.email, profile.email))
+        .returning();
     }
 
-     // Créer le cookie de session
-     const sessionData = {
-        userId: user.id,
-        email: user.email,
-        name: user.name,
-        google_id: user.google_id,
-        first_connection: user.first_connection,
-        picture: user.picture,
+    // Créer le cookie de session
+    const sessionData = {
+      userId: existingUser.id,
+      email: existingUser.email,
+      name: existingUser.name,
+      google_id: existingUser.google_id,
+      first_connection: existingUser.first_connection,
+      picture: existingUser.picture,
     };
 
     context.cookies.set('session', JSON.stringify(sessionData), {

@@ -2,9 +2,9 @@
 
 export function onRequest(context: any, next: any) {
 
-  console.log('je passe par middleware')
+  //console.log('je passe par middleware')
   const groqApiKey = import.meta.env.API_KEY_GROQ_CLOUD || context.locals?.runtime?.env.API_KEY_GROQ_CLOUD;
-  console.log('clé api', groqApiKey)
+  //console.log('clé api', groqApiKey)
 
   let currentUser = "";
 
@@ -40,6 +40,6 @@ export function onRequest(context: any, next: any) {
     }
   }
 
-  console.log('route autorisées');
+  // console.log('route autorisées');
   return next();
 }

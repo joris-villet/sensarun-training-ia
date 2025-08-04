@@ -1,21 +1,12 @@
 import type { APIRoute } from "astro";
 import { Groq } from "groq-sdk";
 import type { IMessage } from "../../interfaces";
+import { promptTemplate } from '../../utils/promptTemplate';
 
 export const POST: APIRoute = async (context: any) => {
-
-  const promptTemplate = `
-    - Tu es un coach assistant personnel et expert en course à pieds.
-    - Tu réponds uniquement à la question de l'athlète.
-    - S'il te demande de s'améliorer et que tu n'as pas de données à propos de l'athlète n'hésite pas à demander
-    par exemple ses derniers chronos, sa vma, poids, taille, objectis, tous ce qui pourrait améliorer ton planning entrainement.
-    - Veille bien à équilibrer ton vocabulaire à l'athlète, si tu perçois qu'il est néophite, expliques lui ce qui n'est 
-    pas clair pour lui.
-  `;
-
   try {
     
-  const groqApiKey = import.meta.env.API_KEY_GROQ_CLOUD || context.locals?.runtime?.env.API_KEY_GROQ_CLOUD;
+    const groqApiKey = import.meta.env.API_KEY_GROQ_CLOUD || context.locals?.runtime?.env.API_KEY_GROQ_CLOUD;
 
     if (!groqApiKey) {
       return new Response(JSON.stringify({ error: "Missing GROQ_API_KEY" }), { status: 500 });
@@ -23,6 +14,8 @@ export const POST: APIRoute = async (context: any) => {
   
     const groq = new Groq({ apiKey: groqApiKey });
     const messages: IMessage[] = await context.request.json();
+
+    console.log('messages length => ', messages.length)
 
     const system = {
       role: "system" as const,
@@ -38,10 +31,10 @@ export const POST: APIRoute = async (context: any) => {
 
     const chatCompletion = await groq.chat.completions.create({
       messages: chatHistory,
-      model: "llama3-70b-8192",
-      temperature: 0.2,
-      max_completion_tokens: 150,
-      top_p: 0.95,
+      model: "llama-3.1-8b-instant",
+      temperature: 0.5,
+      max_completion_tokens: 100,
+      top_p: 0.9,
       stream: false,
     });
 

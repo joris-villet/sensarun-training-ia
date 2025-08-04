@@ -1,70 +1,113 @@
 import type { APIRoute } from "astro";
-import { ChatOpenAI } from "@langchain/openai";
+import { Groq } from "groq-sdk";
 import type { IMessage } from "../../interfaces";
 
 export const POST: APIRoute = async (context: any) => {
 
-  // const promptTemplate = `
-  //   Tu es un assistant coach en course à pieds.
-
-  //   - Répond aux questions de l'utilisateur de façon simple.
-  //   - Par exemple, si l'utilisateur ne connait pas sa FCMAX, expliques lui de façon simple et concise.
-  //   - Génère un plan d'entrainement approprié aux objectifs de l'utilisateur s'il te le demande.
-  // `;
-
   const promptTemplate = `
-    - Tu es un coach personnel expert en course à pied, marathon et entraînement cardio. 
-    - Tu es bienveillant, précis et motivant.
-    - Par exemple, si l'utilisateur ne connait pas sa FCMAX, expliques lui de façon simple et concise
-    - Tu aides ton client à structurer ses entraînements, éviter les blessures et atteindre ses objectifs. 
-  `;
+Tu es un assistant chargé d'extraire des valeurs claires et interprétables des réponses d'un formulaire sportif.
 
+IMPORTANT: Détecte d'abord si l'utilisateur pose une QUESTION au lieu de donner une réponse.
 
-  const openAIApiKey = import.meta.env.OPENROUTER_API_KEY || context.locals?.runtime?.env.OPENROUTER_API_KEY;
+Si l'utilisateur pose une question (contient ?, "pourquoi", "est-ce que", "comment", etc.), réponds à sa question de manière utile :
+{
+  "field": "question",
+  "value": null,
+  "text": "[Réponse claire et utile à la question posée]",
+  "valid": false
+}
+
+Si la réponse est claire et interprétable pour le champ attendu, retourne :
+{
+  "field": "poids",
+  "value": 75,
+  "text": "75 kg",
+  "valid": true
+}
+
+Si la réponse est floue, ambigüe ou incorrecte pour le champ attendu, demande des précisions :
+{
+  "field": "âge",
+  "value": null,
+  "text": "Désolé, je n'ai pas compris. Pouvez-vous préciser votre âge ?",
+  "valid": false
+}
+
+Exemples de questions à reconnaître :
+- "est ce obligatoire?" → Expliquer pourquoi l'information est demandée
+- "pourquoi vous demandez ça?" → Expliquer l'utilité de la donnée
+- "c'est confidentiel?" → Rassurer sur la confidentialité
+- "comment ça marche?" → Expliquer le processus
+
+Instructions :
+- "field" = nom du champ détecté OU "question" si c'est une question
+- "value" = valeur brute interprétée (nombre/string) OU null pour les questions
+- "text" = reformulation lisible OU réponse à la question
+- "valid" = true si valeur cohérente, false pour questions ou réponses floues
+
+Ne jamais discuter ou commenter. Réponds uniquement avec un JSON bien formé.
+`;
 
   try {
-    
-      const model = new ChatOpenAI({ 
-        apiKey: openAIApiKey,
-        model: "deepseek/deepseek-r1-0528-qwen3-8b:free",
-        temperature: 0.5,   
-        configuration: {
-          baseURL: "https://openrouter.ai/api/v1",
-        },
-      });
+    const groqApiKey = import.meta.env.API_KEY_GROQ_CLOUD || context.locals?.runtime?.env.API_KEY_GROQ_CLOUD;
 
-      const messages: IMessage[]  = await context.request.json(); // array messages ?
-    console.log('messages stores => ', messages);
+    if (!groqApiKey) {
+      return new Response(JSON.stringify({ error: "Missing GROQ_API_KEY" }), { status: 500 });
+    }
+
+    const groq = new Groq({ apiKey: groqApiKey });
+    const messages: IMessage[] = await context.request.json();
 
     const system = {
-      role: 'system' as const,
-      content: `${promptTemplate}`
-    }
+      role: "system" as const,
+      content: promptTemplate.trim(),
+    };
 
-    const chatHistory = messages.map((message: IMessage) => {
-      return {
-        role: message.role as 'user' | 'assistant' | 'system',
-        content: message.content
-      }
+    const answersAthlete = messages.map((m: IMessage) => ({
+      role: m.role as "user" | "assistant" | "system",
+      content: m.content,
+    }));
+
+    answersAthlete.unshift(system);
+
+    const chatCompletion = await groq.chat.completions.create({
+      messages: answersAthlete,
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.4,
+      max_completion_tokens: 300,
+      top_p: 0.8,
+      stream: false,
     });
-    
-    const output = await model.invoke(chatHistory);
 
-    if (output) {
-      console.log("output => ", output)
-      console.log("output model => ", output.content)
-      console.log('total token => ', output.usage_metadata?.total_tokens)
+    const output = chatCompletion.choices[0].message;
+    console.log('réponse brute => ', output.content);
+
+    try {
+      // Parser le JSON retourné par le LLM
+      const parsedResponse = JSON.parse(output.content ?? '{}');
+      console.log('réponse parsée => ', parsedResponse);
+      
+      // Retourner directement l'objet parsé
+      return new Response(JSON.stringify(parsedResponse));
+      
+    } catch (parseError) {
+      console.error('Erreur de parsing JSON:', parseError);
+      // Si le parsing échoue, retourner une réponse d'erreur
+      return new Response(JSON.stringify({
+        field: "unknown",
+        value: null,
+        text: "Désolé, une erreur s'est produite. Pouvez-vous reformuler votre réponse ?",
+        valid: false
+      }));
     }
-  
-    return new Response(JSON.stringify({
-      message: output.content,
-      totalToken: output.usage_metadata?.total_tokens
-    }))
 
-  } 
-  catch(err) {
+  } catch (err) {
+    console.error('Erreur API:', err);
     return new Response(JSON.stringify({
-      message: err
-    }))
+      field: "unknown",
+      value: null,
+      text: "Désolé, une erreur s'est produite. Veuillez réessayer.",
+      valid: false
+    }), { status: 500 });
   }
 };
