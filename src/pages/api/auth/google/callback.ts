@@ -147,9 +147,6 @@ export const GET: APIRoute = async (context: any) => {
 
 
 
-
-
-
 // import jwt from 'jsonwebtoken';
 
 // // Dans votre callback
